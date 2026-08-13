@@ -333,6 +333,23 @@ export const useApp = create<AppState>((set, get) => ({
     if (!loadedSettings.aiApiKey && import.meta.env.VITE_AI_API_KEY) {
       loadedSettings.aiApiKey = import.meta.env.VITE_AI_API_KEY as string
     }
+
+    // Migração de settings legadas (builds antigos) que quebram a IA:
+    // - demoMode:true antigo → desliga em produção (senão "Gerar Nova" vira template fixo)
+    // - aiBaseUrl zen/v1 → zen/go/v1 (deepseek-v4-flash só existe em /go; /v1 devolve 401)
+    // - aiModel deepseek-v4-pro → deepseek-v4-flash (padrão atual, retorna texto direto)
+    if (loadedSettings.demoMode === true) {
+      loadedSettings.demoMode = false
+    }
+    if (loadedSettings.aiBaseUrl === 'https://opencode.ai/zen/v1') {
+      loadedSettings.aiBaseUrl = 'https://opencode.ai/zen/go/v1'
+    }
+    if (loadedSettings.aiModel === 'deepseek-v4-pro') {
+      loadedSettings.aiModel = 'deepseek-v4-flash'
+    }
+    if (!loadedSettings.aiModel) {
+      loadedSettings.aiModel = 'deepseek-v4-flash'
+    }
     const localCompanies = getItem<Company[]>('companies', [])
     const localLeads = getItem<Lead[]>('leads', [])
 

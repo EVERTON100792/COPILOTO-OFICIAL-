@@ -115,7 +115,7 @@ export async function callAI(options: AIClientOptions): Promise<string> {
   // Use settings from the store
   const apiKey = settings.aiApiKey
   const configuredBaseUrl = settings.aiBaseUrl || 'https://opencode.ai/zen/go/v1'
-  const preferredModel = settings.aiModel || 'deepseek-v4-pro'
+  const preferredModel = settings.aiModel || 'deepseek-v4-flash'
 
   const provider = detectProvider(apiKey || '', configuredBaseUrl)
 
