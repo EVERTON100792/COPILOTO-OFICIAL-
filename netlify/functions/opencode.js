@@ -31,25 +31,34 @@ exports.handler = async function(event) {
     'Content-Type': 'application/json',
     'Accept': '*/*',
     'Authorization': `Bearer ${apiKey}`,
-    'User-Agent': 'prospex-netlify-proxy',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
   };
   if (event.headers && event.headers['x-title']) headers['X-Title'] = event.headers['x-title'];
   if (event.headers && event.headers['http-referer']) headers['HTTP-Referer'] = event.headers['http-referer'];
 
-  try {
+  const attempt = async () => {
     const response = await fetch(targetUrl, {
       method: event.httpMethod || 'GET',
       headers,
       body: event.body || undefined,
     });
-
     const data = await response.text();
+    return { status: response.status, data, contentType: response.headers.get('Content-Type') || 'application/json' };
+  };
 
+  try {
+    let result = await attempt();
+    if (result.status >= 500 && result.status < 600) {
+      console.log(`[Proxy Function] Upstream ${result.status}, retrying once...`);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      result = await attempt();
+    }
+    console.log(`[Proxy Function] ${event.httpMethod} -> ${targetUrl} -> ${result.status}`);
     return {
-      statusCode: response.status,
-      body: data,
+      statusCode: result.status,
+      body: result.data,
       headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+        'Content-Type': result.contentType,
         'Access-Control-Allow-Origin': '*',
       },
     };
