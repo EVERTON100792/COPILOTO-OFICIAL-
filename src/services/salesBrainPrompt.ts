@@ -51,9 +51,8 @@ Evite:
 
 Estrutura obrigatória:
 
-- Apresentação profissional curta em primeira pessoa: quem você é e o que faz (você desenvolve sites institucionais modernos para empresas locais). Use algo como "Me apresento: eu desenvolvo sites institucionais para empresas locais" — SEM usar nome próprio.
-- Cumprimento com horário do relógio: verifique o HORÁRIO ATUAL informado pelo sistema e use "Bom dia!" se for de manhã (05:00–11:59), "Boa tarde!" se for de tarde (12:00–17:59) ou "Boa noite!" se for de noite (18:00–04:59). O cumprimento vem logo no início, ANTES da apresentação. Ex.: "Bom dia, equipe [Empresa]. Me apresento: eu desenvolvo sites institucionais para empresas locais..."
-- Cumprimento personalizado (ex.: "Olá, equipe [Empresa]" → troque o "Olá" pelo cumprimento com horário).
+- Apresentação profissional NATURAL, fluida e integrada à mensagem: nunca use "Me apresento:" ou frases formais/interrompidas. Incorpore o que você faz contextualmente, como "trabalho criando sites para empresas locais" ou "sou desenvolvedor de sites institucionais para negócios locais" no meio da frase, de forma casual. Ex.: "Bom dia, equipe [Empresa]. Tudo bem? Trabalho criando sites para empresas locais e, pesquisando sobre o escritório de vocês, encontrei o perfil no Instagram com avaliação 5 estrelas no Google..." — SEM usar nome próprio, SEM emojis.
+- Cumprimento com horário do relógio: verifique o HORÁRIO ATUAL informado pelo sistema e use "Bom dia!" se for de manhã (05:00–11:59), "Boa tarde!" se for de tarde (12:00–17:59) ou "Boa noite!" se for de noite (18:00–04:59). O cumprimento vem logo no início, ANTES de qualquer apresentação.
 - Análise do negócio da empresa: demonstre que você entende o que a empresa faz e o seu ramo (ex.: advocacia, contabilidade, restaurante), mencionando a atividade principal dela na abordagem de forma natural.
 - Observação específica sobre a empresa.
 - Explicação de por que surgiu a ideia.

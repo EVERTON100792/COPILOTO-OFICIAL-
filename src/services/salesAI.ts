@@ -167,7 +167,7 @@ Cidade: ${company?.city || 'N/D'}
 ${extraFacts ? `\nFATOS DESCOBERTOS NA INTERNET SOBRE A EMPRESA:\n${extraFacts}` : ''}
 
 Regras extras para esta mensagem:
-- Comece com o cumprimento de horário OBRIGATÓRIO ("Bom dia!" / "Boa tarde!" / "Boa noite!" conforme o período informado), seguido da apresentação profissional do que você faz, SEM usar nome próprio.
+- Comece com o cumprimento de horário OBRIGATÓRIO ("Bom dia!" / "Boa tarde!" / "Boa noite!" conforme o período informado) e incorpore o que você faz de forma NATURAL e casual no meio do texto (nunca use "Me apresento:").
 - Analise o ramo e a atividade da empresa e demonstre esse entendimento na mensagem, falando do negócio dela de forma natural.
 - Use APENAS os fatos acima como observações verificáveis. Se não houver fatos suficientes, use a observação neutra padrão.
 - Seja a primeira mensagem de um vendedor consultivo: sem pressão, sem gatilhos de medo, sem jargão técnico.
