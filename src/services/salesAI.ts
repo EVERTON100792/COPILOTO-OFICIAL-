@@ -154,16 +154,20 @@ export async function generateOpeningMessageAI(company: Company | any, apiKey?: 
     company?.address ? `Endereço: ${company.address}` : '',
   ].filter(Boolean).join('\n')
 
-  const system = `${SALES_BRAIN_PROMPT}
+  const hour = new Date().getHours()
+const periodLabel = hour >= 5 && hour < 12 ? 'MANHÃ (use "Bom dia!")' : hour >= 12 && hour < 18 ? 'TARDE (use "Boa tarde!")' : 'NOITE (use "Boa noite!")'
+
+const system = `${SALES_BRAIN_PROMPT}
 
 O sistema solicita a GERAÇÃO DA PRIMEIRA ABORDAGEM para a empresa abaixo.
+Horário atual do relógio: ${hour}:${String(new Date().getMinutes()).padStart(2, '0')} — período: ${periodLabel}
 A empresa é: ${company?.name || 'Empresa Local'}
 Tipo de negócio: ${company?.category || 'Negócio Local'}
 Cidade: ${company?.city || 'N/D'}
 ${extraFacts ? `\nFATOS DESCOBERTOS NA INTERNET SOBRE A EMPRESA:\n${extraFacts}` : ''}
 
 Regras extras para esta mensagem:
-- Comece se apresentando profissionalmente (o que você faz: desenvolve sites institucionais para empresas locais), SEM usar nome próprio.
+- Comece com o cumprimento de horário OBRIGATÓRIO ("Bom dia!" / "Boa tarde!" / "Boa noite!" conforme o período informado), seguido da apresentação profissional do que você faz, SEM usar nome próprio.
 - Analise o ramo e a atividade da empresa e demonstre esse entendimento na mensagem, falando do negócio dela de forma natural.
 - Use APENAS os fatos acima como observações verificáveis. Se não houver fatos suficientes, use a observação neutra padrão.
 - Seja a primeira mensagem de um vendedor consultivo: sem pressão, sem gatilhos de medo, sem jargão técnico.
