@@ -76,8 +76,9 @@ Extraia todos os campos possíveis do JSON a partir dos resultados acima.`
     const raw = await callAI({
       systemPrompt,
       userMessage,
-      model: 'deepseek-v4-pro',
+      model: 'deepseek-v4-flash',
       temperature: 0.1,
+      maxTokens: 800,
     })
 
     const cleaned = raw.replace(/```json\s*|```/g, '').trim()
