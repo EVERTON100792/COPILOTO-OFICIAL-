@@ -3,7 +3,7 @@
 // Adiciona a chave secreta (AI_API_KEY) no lado do servidor,
 // evitando expor a chave no navegador.
 
-exports.handler = async function(event) {
+export const handler = async function(event) {
   const apiKey = process.env.AI_API_KEY || process.env.VITE_AI_API_KEY;
 
   if (!apiKey) {
