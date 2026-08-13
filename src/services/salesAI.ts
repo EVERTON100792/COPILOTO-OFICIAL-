@@ -143,7 +143,13 @@ export async function generateOpeningMessageAI(company: Company | any, apiKey?: 
   void apiKey
 
   const extraFacts = [
+    `Ramo da empresa: ${company?.category || 'Negócio Local'}`,
     company?.summary ? `Resumo do negócio: ${company.summary}` : '',
+    company?.rating ? `Avaliação no Google: ${company.rating} estrelas${company.reviewCount ? ` (${company.reviewCount} avaliações)` : ''}` : '',
+    company?.website ? `Site da empresa: ${company.website}` : '',
+    company?.instagram ? `Instagram: ${company.instagram}` : '',
+    company?.facebook ? `Facebook: ${company.facebook}` : '',
+    company?.phone ? `Telefone/WhatsApp: ${company.phone}` : '',
     company?.hours ? `Horário de funcionamento: ${company.hours}` : '',
     company?.address ? `Endereço: ${company.address}` : '',
   ].filter(Boolean).join('\n')
@@ -157,6 +163,8 @@ Cidade: ${company?.city || 'N/D'}
 ${extraFacts ? `\nFATOS DESCOBERTOS NA INTERNET SOBRE A EMPRESA:\n${extraFacts}` : ''}
 
 Regras extras para esta mensagem:
+- Comece se apresentando profissionalmente (o que você faz: desenvolve sites institucionais para empresas locais), SEM usar nome próprio.
+- Analise o ramo e a atividade da empresa e demonstre esse entendimento na mensagem, falando do negócio dela de forma natural.
 - Use APENAS os fatos acima como observações verificáveis. Se não houver fatos suficientes, use a observação neutra padrão.
 - Seja a primeira mensagem de um vendedor consultivo: sem pressão, sem gatilhos de medo, sem jargão técnico.
 - Retorne APENAS o texto da mensagem, sem aspas, sem formatação JSON, sem introduções.`
