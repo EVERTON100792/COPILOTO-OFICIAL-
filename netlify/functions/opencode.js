@@ -36,24 +36,24 @@ exports.handler = async function(event) {
   if (event.headers && event.headers['x-title']) headers['X-Title'] = event.headers['x-title'];
   if (event.headers && event.headers['http-referer']) headers['HTTP-Referer'] = event.headers['http-referer'];
 
+  const rawBody = event.isBase64Encoded && event.body
+    ? Buffer.from(event.body, 'base64').toString('utf8')
+    : event.body;
+
   const attempt = async () => {
     const response = await fetch(targetUrl, {
       method: event.httpMethod || 'GET',
       headers,
-      body: event.body || undefined,
+      body: rawBody || undefined,
     });
     const data = await response.text();
     return { status: response.status, data, contentType: response.headers.get('Content-Type') || 'application/json' };
   };
 
   try {
-    let result = await attempt();
-    if (result.status >= 500 && result.status < 600) {
-      console.log(`[Proxy Function] Upstream ${result.status}, retrying once...`);
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      result = await attempt();
-    }
-    console.log(`[Proxy Function] ${event.httpMethod} -> ${targetUrl} -> ${result.status}`);
+    const started = Date.now();
+    const result = await attempt();
+    console.log(`[Proxy Function] ${event.httpMethod} -> ${targetUrl} -> ${result.status} em ${Date.now() - started}ms`);
     return {
       statusCode: result.status,
       body: result.data,

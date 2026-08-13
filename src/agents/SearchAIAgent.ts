@@ -40,7 +40,10 @@ export async function searchCompanyData(input: SearchAIAgentInput): Promise<Sear
     if (res.ok) {
       const data = await res.json();
       if (data && data.results && data.results.length > 0) {
-        searchContext = data.results.map((r: any) => `TÍTULO: ${r.title}\nCONTEÚDO: ${r.content}\nURL: ${r.url}`).join('\n\n')
+        searchContext = data.results.slice(0, 3).map((r: any) => {
+          const content = (r.content || '').slice(0, 2600)
+          return `TÍTULO: ${r.title}\nCONTEÚDO: ${content}\nURL: ${r.url}`;
+        }).join('\n\n')
       }
     }
   } catch (err) {
@@ -78,7 +81,7 @@ Extraia todos os campos possíveis do JSON a partir dos resultados acima.`
       userMessage,
       model: 'deepseek-v4-flash',
       temperature: 0.1,
-      maxTokens: 800,
+      maxTokens: 500,
     })
 
     const cleaned = raw.replace(/```json\s*|```/g, '').trim()
