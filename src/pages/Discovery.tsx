@@ -50,12 +50,10 @@ function websiteStatus(company: Company) {
 
 export default function Discovery() {
   const navigate = useNavigate()
-  const { companies, leads, upsertLead, toast } = useApp((s) => ({
-    companies: s.companies,
-    leads: s.leads,
-    upsertLead: s.upsertLead,
-    toast: s.toast
-  }))
+  const companies = useApp((s) => s.companies)
+  const leads = useApp((s) => s.leads)
+  const upsertLead = useApp((s) => s.upsertLead)
+  const toast = useApp((s) => s.toast)
 
   const runs = useApp((s) => s.discoveryRuns)
 
