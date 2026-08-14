@@ -167,17 +167,13 @@ export class OutreachService {
       let generatedBy: 'AI' | 'TEMPLATE' = 'TEMPLATE'
 
       // Tenta personalização via IA se ativa
-      const canUseAI = !company.isDemo && s.settings.aiMode !== 'DISABLED' && Boolean(s.settings.aiApiKey)
+      const canUseAI = !company.isDemo && s.settings.aiMode !== 'DISABLED'
       if (canUseAI) {
         try {
-          const aiRes = await aiGenerate({
-            system: `Você é um especialista em copy comercial B2B consultiva. Escreva uma mensagem curta (3-5 linhas) humana, segura e sem alucinações. Se a empresa não tiver site registrado, use "não identificamos um site oficial nas fontes públicas consultadas". NUNCA faça promessas falsas ou invente valores.`,
-            prompt: `Escreva a mensagem inicial de prospecção para a empresa ${company.name} (${company.category ?? 'Negócio'}, ${company.city ?? 'cidade'}). Oferta: ${campaign.offerName}. Serviço recomendado: ${qual?.recommendedService ?? 'Website Institucional'}.`,
-            temperature: 0.3,
-            maxTokens: 300,
-          })
-          if (aiRes && aiRes.text && aiRes.provider !== 'demo-template') {
-            body = aiRes.text.trim()
+          const { generateOpeningMessageAI } = await import('./salesAI')
+          const msg = await generateOpeningMessageAI(company, s.settings.aiApiKey)
+          if (msg) {
+            body = msg.trim()
             generatedBy = 'AI'
           }
         } catch {
