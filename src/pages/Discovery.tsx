@@ -8,6 +8,7 @@ import { DiscoveryService } from '../discovery/engine'
 import { providerLabel } from '../discovery/registry'
 import { LeadMap } from '../components/LeadMap'
 import { SalesConversationModal } from '../components/SalesConversationModal'
+import { MassProspectModal } from '../components/MassProspectModal'
 import { MapsImportModal } from '../components/MapsImportModal'
 import type { DiscoveryRun, Company } from '../types'
 
@@ -59,6 +60,7 @@ export default function Discovery() {
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [salesModalOpen, setSalesModalOpen] = useState(false)
+  const [massProspectModalOpen, setMassProspectModalOpen] = useState(false)
   const [mapsImportOpen, setMapsImportOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [showMap, setShowMap] = useState(true)
@@ -113,43 +115,7 @@ export default function Discovery() {
 
   async function handleMassProspect() {
     if (filteredCompanies.length === 0) return
-    if (!window.confirm(`Deseja prospectar automaticamente em lote as ${filteredCompanies.length} empresas listadas e enviá-las para a Fila de Aprovações?`)) return
-
-    toast('info', 'Iniciando prospecção em lote...')
-
-    // 1. Ensure all filtered companies are leads
-    for (const c of filteredCompanies) {
-      if (!leadsByCompany.has(c.id) && c.whatsappStatus !== 'NO_WHATSAPP') {
-        upsertLead({
-          id: uid('ld'),
-          workspaceId: c.workspaceId,
-          companyId: c.id,
-          status: 'NEW',
-          createdAt: nowIso(),
-          updatedAt: nowIso(),
-        } as any)
-      }
-    }
-
-    try {
-      const { OutreachService } = await import('../services/outreach')
-      const service = new OutreachService()
-
-      const camp = service.createCampaign({
-        name: `Prospecção em Lote - ${formatDateTime(nowIso())}`,
-        description: 'Gerada automaticamente via Resultados da Busca',
-        requiresApproval: true,
-        minScore: 0
-      })
-
-      toast('info', `Gerando mensagens de IA para a campanha...`)
-      await service.generateCampaignMessages(camp.id)
-
-      toast('success', 'Mensagens geradas! Redirecionando para aprovação...')
-      navigate('/outreach/approval')
-    } catch (e: any) {
-      toast('error', 'Erro ao prospectar em lote: ' + e.message)
-    }
+    setMassProspectModalOpen(true)
   }
 
   return (
@@ -160,6 +126,12 @@ export default function Discovery() {
         open={salesModalOpen}
         company={selectedCompany}
         onClose={() => { setSalesModalOpen(false); setSelectedCompany(null) }}
+      />
+
+      <MassProspectModal
+        open={massProspectModalOpen}
+        companies={filteredCompanies}
+        onClose={() => setMassProspectModalOpen(false)}
       />
 
       {/* Page Header - Ultra Compact */}

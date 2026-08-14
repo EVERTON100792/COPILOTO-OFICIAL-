@@ -137,7 +137,10 @@ export class OutreachService {
   /**
    * Gera mensagens personalizadas para os leads de uma campanha.
    */
-  async generateCampaignMessages(campaignId: string): Promise<OutreachMessage[]> {
+  async generateCampaignMessages(
+    campaignId: string,
+    onProgress?: (index: number, total: number, companyName: string) => void
+  ): Promise<OutreachMessage[]> {
     const s = useApp.getState()
     const campaign = s.outreachCampaigns.find((c) => c.id === campaignId)
     if (!campaign) throw new Error(`Campanha ${campaignId} não encontrada.`)
@@ -147,10 +150,16 @@ export class OutreachService {
     const qualMap = new Map(s.qualifications.map((q) => [q.leadId, q]))
 
     const generatedMessages: OutreachMessage[] = []
+    let processedCount = 0
 
     for (const lead of campaignLeads) {
       const company = companyMap.get(lead.companyId)
       if (!company || company.doNotContact || lead.status === 'DO_NOT_CONTACT') continue
+
+      processedCount++
+      if (onProgress) {
+        onProgress(processedCount, campaignLeads.length, company.name)
+      }
 
       // Evita duplicadas
       const existing = s.outreachMessages.find(
