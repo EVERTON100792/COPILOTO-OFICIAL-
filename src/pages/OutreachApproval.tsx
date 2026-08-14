@@ -40,27 +40,29 @@ export default function OutreachApproval() {
   }
 
   const handleDispatchAll = async () => {
-    if (!window.confirm(`ATENÇÃO: Deseja aprovar e ENVIAR AUTOMATICAMENTE via WhatsApp todas as ${pendingMessages.length} mensagens pendentes?`)) return
+    if (!window.confirm(`Deseja abrir todas as ${pendingMessages.length} mensagens no WhatsApp Web em novas abas? (Seu navegador pode pedir para permitir Pop-ups)`)) return
     
     setIsSending(true)
-    let successCount = 0
-    let errorCount = 0
+    let openedCount = 0
 
     for (const msg of pendingMessages) {
-      const res = await service.dispatchMessageAutomatic(msg.id)
-      if (res.ok) {
-        successCount++
-      } else {
-        errorCount++
+      const lead = leadMap.get(msg.leadId)
+      const company = lead ? companyMap.get(lead.companyId) : null
+      const phone = company?.phone?.replace(/\D/g, '')
+
+      if (phone) {
+        const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg.body)}`
+        window.open(url, '_blank')
+        service.recordManualContact(msg.leadId, msg.id, msg.channel)
+        openedCount++
+        
+        // Pequena pausa para o navegador não travar abrindo várias abas
+        await new Promise(resolve => setTimeout(resolve, 300))
       }
     }
 
     setIsSending(false)
-    if (errorCount > 0) {
-      toast('warning', `Disparo concluído: ${successCount} enviados, ${errorCount} falhas.`)
-    } else {
-      toast('success', `Disparo em massa concluído! ${successCount} mensagens enviadas!`)
-    }
+    toast('success', `Abertura em lote concluída! ${openedCount} abas do WhatsApp abertas!`)
   }
 
   const handleReject = (msg: OutreachMessage) => {
