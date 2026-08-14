@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { DotCard } from '../components/ui/DotCard'
 import { useApp } from '../services/store'
 import { Card, Button, Badge, EmptyState } from '../components/ui'
-import { formatDateTime } from '../lib/utils'
+import { formatDateTime, uid, nowIso } from '../lib/utils'
 import { DiscoveryService } from '../discovery/engine'
 import { providerLabel } from '../discovery/registry'
 import { LeadMap } from '../components/LeadMap'
@@ -49,10 +49,15 @@ function websiteStatus(company: Company) {
 }
 
 export default function Discovery() {
+  const navigate = useNavigate()
+  const { companies, leads, upsertLead, toast } = useApp((s) => ({
+    companies: s.companies,
+    leads: s.leads,
+    upsertLead: s.upsertLead,
+    toast: s.toast
+  }))
+
   const runs = useApp((s) => s.discoveryRuns)
-  const companies = useApp((s) => s.companies)
-  const leads = useApp((s) => s.leads)
-  const toast = useApp((s) => s.toast)
 
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
   const [salesModalOpen, setSalesModalOpen] = useState(false)
@@ -107,6 +112,47 @@ export default function Discovery() {
     for (const l of leads) map.set(l.companyId, (map.get(l.companyId) || 0) + 1)
     return map
   }, [leads])
+
+  async function handleMassProspect() {
+    if (filteredCompanies.length === 0) return
+    if (!window.confirm(`Deseja prospectar automaticamente em lote as ${filteredCompanies.length} empresas listadas e enviá-las para a Fila de Aprovações?`)) return
+
+    toast('info', 'Iniciando prospecção em lote...')
+
+    // 1. Ensure all filtered companies are leads
+    for (const c of filteredCompanies) {
+      if (!leadsByCompany.has(c.id) && c.whatsappStatus !== 'NO_WHATSAPP') {
+        upsertLead({
+          id: uid('ld'),
+          workspaceId: c.workspaceId,
+          companyId: c.id,
+          status: 'NEW',
+          createdAt: nowIso(),
+          updatedAt: nowIso(),
+        } as any)
+      }
+    }
+
+    try {
+      const { OutreachService } = await import('../services/outreach')
+      const service = new OutreachService()
+
+      const camp = service.createCampaign({
+        name: `Prospecção em Lote - ${formatDateTime(nowIso())}`,
+        description: 'Gerada automaticamente via Resultados da Busca',
+        requiresApproval: true,
+        minScore: 0
+      })
+
+      toast('info', `Gerando mensagens de IA para a campanha...`)
+      await service.generateCampaignMessages(camp.id)
+
+      toast('success', 'Mensagens geradas! Redirecionando para aprovação...')
+      navigate('/outreach/approval')
+    } catch (e: any) {
+      toast('error', 'Erro ao prospectar em lote: ' + e.message)
+    }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
@@ -204,9 +250,16 @@ export default function Discovery() {
 
           {/* Single Unified Grid for All Companies */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontSize: 18, margin: 0 }}>Resultados da Busca</h2>
-              <span style={{ fontSize: 13, color: 'var(--muted)' }}>Exibindo {filteredCompanies.length} empresas</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <h2 style={{ fontSize: 18, margin: 0 }}>Resultados da Busca</h2>
+                <span style={{ fontSize: 13, color: 'var(--muted)' }}>Exibindo {filteredCompanies.length} empresas</span>
+              </div>
+              {filteredCompanies.length > 0 && (
+                <Button variant="primary" onClick={handleMassProspect}>
+                  🚀 Prospectar Todos em Lote ({filteredCompanies.length})
+                </Button>
+              )}
             </div>
             <div className="grid grid-dense">
                   {filteredCompanies.map((company) => {
