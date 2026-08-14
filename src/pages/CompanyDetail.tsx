@@ -178,6 +178,26 @@ export default function CompanyDetail() {
           showSiteButton: out?.showSiteButton,
           isWon: out?.isWon,
           isLost: out?.isLost,
+          
+          // Sales Intelligence Observability (Fase 3)
+          intelligenceApplied: out?.intelligenceApplied,
+          overrideApplied: out?.overrideApplied,
+          overrideReason: out?.overrideReason,
+          humanReviewRequired: out?.humanReviewRequired,
+          existingDecisionCategory: out?.existingDecisionCategory,
+          finalDecisionCategory: out?.finalDecisionCategory,
+          intelligenceDecision: out?.intelligenceDecision,
+          
+          // Conversation Intelligence (Fase 4)
+          existingSuggestedReply: out?.existingSuggestedReply,
+          generatedResponse: out?.generatedResponse,
+          responseConfidence: out?.responseConfidence,
+          responseGenerationApplied: out?.responseGenerationApplied,
+          responseFallbackUsed: out?.responseFallbackUsed,
+          conversationState: out?.conversationState,
+          nextBestAction: out?.nextBestAction,
+          shouldRespond: out?.shouldRespond,
+          shouldWait: out?.shouldWait
         },
         createdAt: nowIso(),
       }

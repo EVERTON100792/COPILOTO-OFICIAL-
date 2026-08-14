@@ -21,7 +21,7 @@ export abstract class BaseAgent {
 
   protected abstract runCore(input: Record<string, unknown>, ctx: AgentContext): Promise<unknown>
 
-  async execute(input: Record<string, unknown>, ctx: AgentContext): Promise<AgentResult> {
+  async execute(input: Record<string, unknown>, ctx: AgentContext = {} as AgentContext): Promise<AgentResult> {
     const startedAt = nowIso()
     const startedMs = Date.now()
     const runId = uid('run')

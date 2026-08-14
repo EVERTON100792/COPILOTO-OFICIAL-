@@ -5,6 +5,7 @@ import { requestAIQualification } from '../integrations/ai/qualification'
 import { aiGenerate } from '../integrations/ai'
 import { buildTemplateContext, renderTemplate } from './outreachTemplates'
 import { FollowUpEngineService } from './followUpEngine'
+import { sendWhatsApp } from '../integrations/whatsapp'
 import type {
   OutreachCampaign,
   OutreachMessage,
@@ -367,5 +368,44 @@ export class OutreachService {
     followEngine.scheduleNextFollowUp(leadId, msg?.type ?? 'INITIAL')
 
     logger.info('OUTREACH', `Contato confirmado para o lead ${leadId} via ${channel}.`)
+  }
+
+  /**
+   * Dispara a mensagem automaticamente via API do WhatsApp e registra.
+   */
+  async dispatchMessageAutomatic(messageId: string): Promise<{ ok: boolean; error?: string }> {
+    const s = useApp.getState()
+    const msg = s.outreachMessages.find((m) => m.id === messageId)
+    if (!msg) return { ok: false, error: 'Mensagem não encontrada.' }
+
+    const lead = s.leads.find((l) => l.id === msg.leadId)
+    const company = lead ? s.companies.find((c) => c.id === lead.companyId) : null
+    
+    if (!company) return { ok: false, error: 'Empresa não encontrada.' }
+
+    // Aprova automaticamente se estiver pendente
+    if (msg.status === 'PENDING_APPROVAL') {
+      this.approveMessage(msg.id)
+    }
+
+    const phone = company.phone?.replace(/\D/g, '')
+    if (!phone) {
+      return { ok: false, error: 'Sem telefone cadastrado.' }
+    }
+
+    // Se for ambiente de demonstração, simula sucesso
+    if (company.isDemo) {
+      this.recordManualContact(msg.leadId, msg.id, msg.channel)
+      return { ok: true }
+    }
+
+    // Chama API
+    const res = await sendWhatsApp(phone, msg.body)
+    if (res.ok) {
+      this.recordManualContact(msg.leadId, msg.id, msg.channel)
+      return { ok: true }
+    }
+    
+    return { ok: false, error: res.error || 'Falha na API do WhatsApp.' }
   }
 }

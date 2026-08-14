@@ -17,6 +17,8 @@ export default function OutreachApproval() {
 
   const service = new OutreachService()
 
+  const [isSending, setIsSending] = useState(false)
+
   const handleApprove = (msgId: string) => {
     service.approveMessage(msgId)
     toast('success', 'Mensagem aprovada com sucesso!')
@@ -28,6 +30,30 @@ export default function OutreachApproval() {
       service.approveMessage(msg.id)
     }
     toast('success', `${pendingMessages.length} mensagens aprovadas em lote!`)
+  }
+
+  const handleDispatchAll = async () => {
+    if (!window.confirm(`ATENÇÃO: Deseja aprovar e ENVIAR AUTOMATICAMENTE via WhatsApp todas as ${pendingMessages.length} mensagens pendentes?`)) return
+    
+    setIsSending(true)
+    let successCount = 0
+    let errorCount = 0
+
+    for (const msg of pendingMessages) {
+      const res = await service.dispatchMessageAutomatic(msg.id)
+      if (res.ok) {
+        successCount++
+      } else {
+        errorCount++
+      }
+    }
+
+    setIsSending(false)
+    if (errorCount > 0) {
+      toast('warning', `Disparo concluído: ${successCount} enviados, ${errorCount} falhas.`)
+    } else {
+      toast('success', `Disparo em massa concluído! ${successCount} mensagens enviadas!`)
+    }
   }
 
   const handleReject = (msg: OutreachMessage) => {
@@ -92,9 +118,14 @@ export default function OutreachApproval() {
           </p>
         </div>
         {pendingMessages.length > 0 && (
-          <Button variant="primary" onClick={handleApproveAll}>
-            ✅ Aprovar Todas ({pendingMessages.length})
-          </Button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button variant="secondary" onClick={handleApproveAll} disabled={isSending}>
+              ✅ Aprovar Todas ({pendingMessages.length})
+            </Button>
+            <Button variant="primary" onClick={handleDispatchAll} disabled={isSending}>
+              {isSending ? 'Enviando...' : `🚀 Disparar Automático (${pendingMessages.length})`}
+            </Button>
+          </div>
         )}
       </div>
 

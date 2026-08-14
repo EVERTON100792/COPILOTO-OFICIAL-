@@ -791,6 +791,26 @@ export interface ProspectingMessage {
     isLost?: boolean
     confidence?: number
     fromAI?: boolean
+    
+    // Observabilidade (Fase 3)
+    intelligenceApplied?: boolean
+    overrideApplied?: boolean
+    overrideReason?: string
+    humanReviewRequired?: boolean
+    existingDecisionCategory?: string
+    finalDecisionCategory?: string
+    intelligenceDecision?: any
+    
+    // Observabilidade (Fase 4)
+    existingSuggestedReply?: string
+    generatedResponse?: string
+    responseConfidence?: number
+    responseGenerationApplied?: boolean
+    responseFallbackUsed?: boolean
+    conversationState?: any
+    nextBestAction?: string
+    shouldRespond?: boolean
+    shouldWait?: boolean
   }
   createdAt: string
 }
@@ -844,4 +864,238 @@ export interface WebsiteProject {
   versions: WebsiteVersion[]
   createdAt: string
   updatedAt: string
+}
+
+// ============================================================
+// SALES INTELLIGENCE LAYER
+// ============================================================
+
+export interface CustomerState {
+  interestScore: number
+  trustScore: number
+  buyingIntent: number
+  urgencyScore: number
+  priceSensitivity: number
+  resistanceScore: number
+  engagementScore: number
+  sentiment: 'positive' | 'neutral' | 'negative' | 'mixed'
+  engagement: 'low' | 'medium' | 'high' | 'very_high'
+  salesStage: 'first_contact' | 'contacted' | 'curious' | 'engaged' | 'interested' | 'discovery' | 'presentation' | 'evaluation' | 'objection' | 'negotiation' | 'closing' | 'won' | 'lost' | 'do_not_contact' | 'human_review'
+}
+
+export interface IntelligenceInterpretation {
+  explicitIntent: string
+  implicitIntent: string
+  mainConcern: string
+  mainOpportunity: string
+  keySignal: string
+}
+
+export interface IntelligenceObjection {
+  detected: boolean
+  type: 'price' | 'timing' | 'trust' | 'need' | 'authority' | 'comparison' | 'priority' | 'technical' | 'unknown' | null
+  severity: number
+}
+
+export interface IntelligenceDecision {
+  nextAction: 'respond_now' | 'wait' | 'follow_up' | 'send_demo' | 'send_proposal' | 'ask_question' | 'clarify' | 'handle_objection' | 'advance_to_closing' | 'human_review' | 'stop_contact'
+  reason: string
+  decisionConfidence: number
+  humanReviewRequired: boolean
+}
+
+export interface IntelligenceTiming {
+  shouldWait: boolean
+  recommendedDelayMinutes: number
+}
+
+export interface IntelligenceCommunication {
+  tone: string
+  messageLength: 'short' | 'medium' | 'long'
+  shouldAskQuestion: boolean
+  shouldUseCTA: boolean
+  shouldShowDemo: boolean
+  shouldShowProposal: boolean
+}
+
+export interface SalesIntelligenceOutput {
+  enabled: boolean
+  customerState: CustomerState
+  interpretation: IntelligenceInterpretation
+  objection: IntelligenceObjection
+  decision: IntelligenceDecision
+  timing: IntelligenceTiming
+  communication: IntelligenceCommunication
+}
+
+// ============================================================
+// FASE 4: CONVERSATION INTELLIGENCE
+// ============================================================
+
+export type NextBestAction = 
+  | 'respond' 
+  | 'ask_question' 
+  | 'send_demo' 
+  | 'explain_value' 
+  | 'handle_objection' 
+  | 'answer_price' 
+  | 'clarify_need' 
+  | 'build_trust' 
+  | 'follow_up_later' 
+  | 'wait' 
+  | 'stop_contact' 
+  | 'request_human' 
+  | 'close_sale'
+  | 'acknowledge'
+  | 'answer_timing'
+  | 'answer_question'
+  | 'discovery_question'
+
+export type SalesStrategy = 
+  | 'build_rapport' 
+  | 'discover' 
+  | 'qualify' 
+  | 'create_value' 
+  | 'handle_objection' 
+  | 'advance' 
+  | 'close' 
+  | 'nurture' 
+  | 'wait' 
+  | 'recover' 
+  | 'answer' 
+  | 'acknowledge'
+
+export type SalesMomentum = 'negative' | 'neutral' | 'positive' | 'strong'
+
+export interface ActionGuardMetrics {
+  ctaUsed: boolean
+  ctaType: string | null
+  actionBlockedByGuard: boolean
+  actionGuardReason: string | null
+  directAnswerUsed: boolean
+  repeatedActionPrevented: boolean
+  commercialMemoryUsed: boolean
+  jsonParseFailure: boolean
+  fallbackUsed: boolean
+  discoveryQuestionUsed?: boolean
+  salesAdvanceDetected?: boolean
+}
+
+export interface CommercialMemory {
+  // Facts (Fatos do Sistema ou Histórico Absoluto)
+  demoSent: boolean
+  demoViewed: boolean | 'unknown'
+  demoDiscussed: boolean
+  priceDiscussed: boolean
+  priceAccepted: boolean | 'unknown'
+  proposalSent: boolean
+  messageCount: number
+  lastContactAt: string | null
+  previousActions: string[]
+  
+  // Inferences (Inferências da IA)
+  interestLevel: 'low' | 'medium' | 'high' | 'unknown'
+  buyingIntent: 'low' | 'medium' | 'high' | 'unknown'
+  decisionMakerKnown: boolean
+  decisionMakerIsCurrentContact: boolean | 'unknown'
+  
+  currentObjection: 'none' | 'price' | 'timing' | 'decision_maker' | 'existing_solution' | 'lack_of_need' | 'trust' | 'unknown'
+  objectionHistory: string[]
+  
+  customerPainPoints: string[]
+  customerInterests: string[]
+  customerPreferences: string[]
+  
+  lastMeaningfulAction: string
+  lastMeaningfulCustomerSignal: string
+  
+  followUpNeeded: boolean
+  followUpWindow: string | null
+  
+  salesStage: 'initial_contact' | 'discovery' | 'engaged' | 'demo_sent' | 'evaluating' | 'price_discussion' | 'decision_pending' | 'deferred' | 'won' | 'lost' | 'do_not_contact'
+}
+
+// Phase 4.4 - Deal State Intelligence
+export type DealStatus = 
+  | 'new' | 'discovery' | 'qualified' | 'demo_pending' | 'demo_sent' 
+  | 'demo_engaged' | 'price_discussion' | 'objection' | 'decision_pending' 
+  | 'buying_intent' | 'negotiation' | 'commitment' | 'closing' 
+  | 'closed_pending_action' | 'closed' | 'lost' | 'nurture' | 'stopped'
+
+export type BuyingIntentLevel = 'none' | 'low' | 'medium' | 'high' | 'very_high'
+
+export interface DealStateMetrics {
+  previousDealStatus?: DealStatus
+  currentDealStatus?: DealStatus
+  dealConfidence?: number
+  buyingIntentLevel?: string
+  commitmentDetected?: boolean
+  closingSignalDetected?: boolean
+  explicitCloseConfirmation?: boolean
+  proposalRequested?: boolean
+  contractRequested?: boolean
+  negotiationActive?: boolean
+  priceConditionDetected?: boolean
+  identityGuardTriggered?: boolean
+  closingGuardTriggered?: boolean
+  closingGuardReason?: string
+  falseClosePrevented?: boolean
+}
+
+export interface ConversationStateOutput {
+  stage: CustomerState['salesStage']
+  interestScore: number
+  buyingIntentScore: number
+  trustScore: number
+  resistanceScore: number
+  urgencyScore: number
+  currentObjection?: string
+  lastCustomerIntent?: string
+  preferredTone?: string
+  nextBestAction: NextBestAction
+  shouldRespond: boolean
+  shouldWait: boolean
+  humanReviewRequired: boolean
+  
+  // Phase 4.1 - Contextual Sales Intelligence
+  existingSolutionDetected?: boolean
+  customerSatisfaction?: 'satisfied' | 'dissatisfied' | 'neutral' | 'unknown'
+  salesOpportunity?: 'low' | 'medium' | 'high' | 'unknown'
+  conversationOpportunity?: 'low' | 'medium' | 'high' | 'unknown'
+  pressureLevel?: 'low' | 'medium' | 'high'
+  decisionReason?: string
+  
+  // Phase 4.3 - Consultative Sales Engine
+  salesStrategy?: SalesStrategy
+  salesMomentum?: SalesMomentum
+  buyingSignals?: string[]
+  conversationObjective?: string
+  nextSalesStep?: string
+
+  // Phase 4.4 - Deal State
+  dealStatus?: DealStatus
+  buyingIntentLevel?: BuyingIntentLevel
+  dealConfidence?: number
+  commitmentDetected?: boolean
+  closingSignalDetected?: boolean
+  explicitPurchaseIntent?: boolean
+  explicitCloseConfirmation?: boolean
+  dealBlocker?: string
+  dealNextStep?: string
+  closingReason?: string
+  closureEvidence?: string[]
+  proposalRequested?: boolean
+  contractRequested?: boolean
+  negotiationActive?: boolean
+  priceConditionDetected?: boolean
+  futurePurchaseTiming?: string
+
+  // Phase 4.2 - Commercial Memory
+  commercialMemory?: CommercialMemory
+}
+
+export interface GeneratedResponse {
+  text: string
+  tone: string
+  confidence: number
 }

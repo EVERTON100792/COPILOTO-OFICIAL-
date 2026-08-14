@@ -135,9 +135,13 @@ export async function callAI(options: AIClientOptions): Promise<string> {
     provider === 'openai' ? OPENAI_MODELS :
     OPENCODE_MODELS
 
-  const modelsToTry = options.model
-    ? [options.model]
-    : (preferredModel ? [preferredModel] : defaultModels)
+  // Modelos a tentar em ordem: o preferido primeiro e, se ele falhar
+  // (resposta vazia/reasoning longo demais), fallback automático para variantes.
+  const requestedModel = options.model || preferredModel || defaultModels[0]
+  const fallbackChain = provider === 'opencode_go' || provider === 'opencode_zen'
+    ? ['deepseek-v4-flash', 'deepseek-v4-flash-free', 'deepseek-v4-pro']
+    : defaultModels
+  const modelsToTry = Array.from(new Set([requestedModel, ...fallbackChain]))
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
