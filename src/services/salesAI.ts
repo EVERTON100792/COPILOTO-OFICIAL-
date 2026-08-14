@@ -180,8 +180,8 @@ Regras extras para esta mensagem:
     })
     return raw.trim() || `[IA retornou vazio] ${generateOpeningMessage(company)}`
   } catch (err: any) {
-    console.warn('[salesAI] Falha ao gerar abordagem com IA:', err)
-    return `[ERRO NA IA: ${err.message || String(err)}] - Fallback ativado:\n\n${generateOpeningMessage(company)}`
+    console.warn('[SalesAI] Erro ao gerar mensagem via API, usando fallback:', err)
+    return generateOpeningMessage(company)
   }
 }
 
