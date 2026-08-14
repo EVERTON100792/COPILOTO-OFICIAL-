@@ -74,12 +74,11 @@ export default function Discovery() {
   const active = sorted.find((r) => r.status === 'RUNNING' || r.status === 'QUEUED')
 
   const contactedCompanyIds = useMemo(() => {
-    return new Set(
-      prospectingSessions
-        .map((s) => s.companyId)
-        .filter((id) => companies.some((c) => c.id === id))
-    )
-  }, [prospectingSessions, companies])
+    const set = new Set<string>()
+    for (const s of prospectingSessions) set.add(s.companyId)
+    for (const l of leads) set.add(l.companyId)
+    return set
+  }, [prospectingSessions, leads])
 
   const filteredCompanies = useMemo(() => {
     let list = companies
@@ -227,6 +226,8 @@ export default function Discovery() {
                     const ws = websiteStatus(company)
                     const icon = categoryIcon(company.category)
                     const hasLead = leadsByCompany.has(company.id)
+                    const session = prospectingSessions.find((s) => s.companyId === company.id)
+                    
                     return (
                       <DotCard key={company.id} className="card card-hover" style={{ display: 'flex', flexDirection: 'column', padding: 24 }}>
                         {/* Header */}
@@ -285,6 +286,9 @@ export default function Discovery() {
                           {company.isDemo && <Badge variant="muted">DEMO</Badge>}
                           {hasLead && <Badge variant="success">✓ Lead Cadastrado</Badge>}
                           {company.whatsappStatus === 'NO_WHATSAPP' && <Badge variant="danger">Sem WhatsApp</Badge>}
+                          {session?.status === 'WON' && <Badge variant="success">Fechado com Sucesso</Badge>}
+                          {session?.status === 'NOT_INTERESTED' && <Badge variant="danger">Projeto Não Fechado</Badge>}
+                          {session && session.status !== 'WON' && session.status !== 'NOT_INTERESTED' && <Badge variant="primary">Conversa em andamento</Badge>}
                         </div>
 
                         {/* Info Grid (Glass Pills) */}

@@ -137,6 +137,9 @@ function CopilotChat({ company, onClose }: { company: Company, onClose: () => vo
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const leads = useApp((s) => s.leads)
+  const lead = leads.find((l) => l.companyId === company.id)
+
   const apiKey = settings.aiApiKey || (import.meta.env.VITE_AI_API_KEY as string | undefined) || ''
 
   const session = prospectingSessions.find((s) => s.companyId === company?.id)
@@ -266,6 +269,16 @@ function CopilotChat({ company, onClose }: { company: Company, onClose: () => vo
     }
   }
 
+  const setSessionStatus = (status: 'WON' | 'NOT_INTERESTED') => {
+    if (!session) return
+    upsertProspectingSession({ ...session, status, updatedAt: nowIso() })
+    if (lead) {
+      if (status === 'WON') moveLead(lead.id, 'WON')
+      if (status === 'NOT_INTERESTED') moveLead(lead.id, 'LOST')
+    }
+    toast('success', `Status alterado para ${status === 'WON' ? 'Fechado' : 'Perdido'}!`)
+  }
+
   const phone = company?.whatsapp || company?.phone
   const hasPhone = !!phone
 
@@ -282,8 +295,17 @@ function CopilotChat({ company, onClose }: { company: Company, onClose: () => vo
           <span style={{ fontSize: 18, fontWeight: 'bold' }}>{company.name}</span>
           {session?.status === 'WON' && <Badge variant="success">Fechado</Badge>}
           {session?.status === 'NOT_INTERESTED' && <Badge variant="danger">Perdido</Badge>}
+          {session && session.status !== 'WON' && session.status !== 'NOT_INTERESTED' && <Badge variant="primary">Em andamento</Badge>}
         </div>
-        <Button variant="secondary" size="sm" onClick={onClose}>✕ Fechar</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {session && session.status !== 'WON' && session.status !== 'NOT_INTERESTED' && (
+             <>
+               <Button size="sm" variant="success" style={{ background: 'transparent', color: 'var(--success)', border: '1px solid var(--success)' }} onClick={() => setSessionStatus('WON')}>✅ Fechar Projeto</Button>
+               <Button size="sm" variant="danger" style={{ background: 'transparent', color: 'var(--danger)', border: '1px solid var(--danger)' }} onClick={() => setSessionStatus('NOT_INTERESTED')}>❌ Não Fechado</Button>
+             </>
+          )}
+          <Button variant="secondary" size="sm" onClick={onClose}>✕ Fechar</Button>
+        </div>
       </div>
 
       {/* CHAT HISTORY */}
