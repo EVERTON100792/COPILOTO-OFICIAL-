@@ -5,6 +5,7 @@ import { timeAgo } from '../lib/utils'
 import { useState } from 'react'
 import { Modal } from '../components/ui'
 import { StarfieldBg } from '../components/ui/StarfieldBg'
+import { GlobalCopilotDrawer } from '../components/GlobalCopilotDrawer'
 import { useAuth } from '../contexts/AuthContext'
 
 const NAV = [
@@ -221,6 +222,9 @@ export function AppLayout() {
           </button>
         ))}
       </Modal>
+
+      {/* Global Copilot Drawer */}
+      <GlobalCopilotDrawer />
     </div>
   )
 }

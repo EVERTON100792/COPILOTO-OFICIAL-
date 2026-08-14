@@ -3,15 +3,12 @@ import { Link } from 'react-router-dom'
 import { useApp } from '../services/store'
 import { Card, Button, Badge } from '../components/ui'
 import { OutreachService } from '../services/outreach'
-import { SalesConversationModal } from '../components/SalesConversationModal'
 import type { OutreachMessage, Company } from '../types'
 
 export default function OutreachApproval() {
-  const { outreachMessages, leads, companies, qualifications, upsertOutreachMessage, toast } = useApp()
+  const { outreachMessages, leads, companies, qualifications, upsertOutreachMessage, toast, openCopilot } = useApp()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'PENDING' | 'SENT'>('PENDING')
-  const [copilotCompany, setCopilotCompany] = useState<Company | null>(null)
-  const [copilotOpen, setCopilotOpen] = useState(false)
   const [editBody, setEditBody] = useState('')
 
   const pendingMessages = outreachMessages.filter((m) => m.status === 'PENDING_APPROVAL')
@@ -119,11 +116,6 @@ export default function OutreachApproval() {
 
   return (
     <div style={{ display: 'grid', gap: '1.5rem' }}>
-      <SalesConversationModal
-        open={copilotOpen}
-        company={copilotCompany}
-        onClose={() => { setCopilotOpen(false); setCopilotCompany(null) }}
-      />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -298,13 +290,13 @@ export default function OutreachApproval() {
                       {company?.phone && (
                         <Button size="sm" variant="secondary" onClick={() => handleOpenWhatsapp(msg)}>📱 Reabrir WhatsApp</Button>
                       )}
-                    </div>
-                    <div>
-                      <Button size="sm" variant="primary" onClick={() => {
-                        setCopilotCompany(company || null)
-                        setCopilotOpen(true)
-                      }}>
-                        💬 Abrir Copiloto IA
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => company && openCopilot(company.id)}
+                        disabled={!company}
+                      >
+                        🤖 Copiloto IA
                       </Button>
                     </div>
                   </div>

@@ -7,7 +7,6 @@ import { formatDateTime, uid, nowIso } from '../lib/utils'
 import { DiscoveryService } from '../discovery/engine'
 import { providerLabel } from '../discovery/registry'
 import { LeadMap } from '../components/LeadMap'
-import { SalesConversationModal } from '../components/SalesConversationModal'
 import { MassProspectModal } from '../components/MassProspectModal'
 import { MapsImportModal } from '../components/MapsImportModal'
 import type { DiscoveryRun, Company } from '../types'
@@ -58,8 +57,6 @@ export default function Discovery() {
 
   const runs = useApp((s) => s.discoveryRuns)
 
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
-  const [salesModalOpen, setSalesModalOpen] = useState(false)
   const [massProspectModalOpen, setMassProspectModalOpen] = useState(false)
   const [mapsImportOpen, setMapsImportOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -71,6 +68,8 @@ export default function Discovery() {
   const sorted = useMemo(() => [...runs].reverse(), [runs])
   const removeCompany = useApp((s) => s.removeCompany)
   const patchCompany = useApp((s) => s.patchCompany)
+
+  const openCopilot = useApp((s) => s.openCopilot)
 
   const active = sorted.find((r) => r.status === 'RUNNING' || r.status === 'QUEUED')
 
@@ -103,8 +102,7 @@ export default function Discovery() {
   }, [companies, search, activeTab, contactedCompanyIds])
 
   function handleProspectar(company: Company) {
-    setSelectedCompany(company)
-    setSalesModalOpen(true)
+    openCopilot(company.id)
   }
 
   const leadsByCompany = useMemo(() => {
@@ -120,13 +118,6 @@ export default function Discovery() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, width: '100%' }}>
-
-      {/* Sales Conversation Modal */}
-      <SalesConversationModal
-        open={salesModalOpen}
-        company={selectedCompany}
-        onClose={() => { setSalesModalOpen(false); setSelectedCompany(null) }}
-      />
 
       <MassProspectModal
         open={massProspectModalOpen}

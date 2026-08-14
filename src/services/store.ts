@@ -221,6 +221,12 @@ interface AppState {
   toasts: Toast[]
   hydrated: boolean
 
+  // Copilot Drawer State
+  copilotOpen: boolean
+  activeCopilotCompanyId: string | null
+  openCopilot: (companyId: string) => void
+  setCopilotOpen: (open: boolean) => void
+
   hydrate: () => void
   resetAll: () => void
 
@@ -327,6 +333,14 @@ export const useApp = create<AppState>((set, get) => ({
   websiteProjects: [],
   toasts: [],
   hydrated: false,
+  copilotOpen: false,
+  activeCopilotCompanyId: null,
+
+  setCopilotOpen: (open) => set({ copilotOpen: open }),
+  openCopilot: (companyId) => {
+    // Garante que o painel abra com essa empresa selecionada
+    set({ copilotOpen: true, activeCopilotCompanyId: companyId })
+  },
 
   hydrate: async () => {
     const loadedSettings = getItem('settings', DEFAULT_SETTINGS)
