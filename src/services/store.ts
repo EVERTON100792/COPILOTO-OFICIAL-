@@ -243,6 +243,7 @@ interface AppState {
 
   upsertOutreachCampaign: (c: OutreachCampaign) => void
   upsertOutreachMessage: (m: OutreachMessage) => void
+  deleteOutreachMessage: (id: string) => void
   pushOutreachActivity: (a: OutreachActivity) => void
 
   upsertDemo: (demo: Demo) => void
@@ -725,6 +726,10 @@ export const useApp = create<AppState>((set, get) => ({
     const idx = outreachMessages.findIndex((item) => item.id === m.id)
     const next = idx >= 0 ? outreachMessages.map((item) => (item.id === m.id ? m : item)) : [m, ...outreachMessages]
     set({ outreachMessages: next }); persist({ outreachMessages: next })
+  },
+  deleteOutreachMessage: (id) => {
+    const outreachMessages = get().outreachMessages.filter(m => m.id !== id)
+    set({ outreachMessages }); persist({ outreachMessages })
   },
   pushOutreachActivity: (a) => {
     const outreachActivities = [a, ...get().outreachActivities].slice(0, 1000)

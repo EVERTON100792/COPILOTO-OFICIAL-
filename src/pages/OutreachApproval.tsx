@@ -6,7 +6,7 @@ import { OutreachService } from '../services/outreach'
 import type { OutreachMessage, Company } from '../types'
 
 export default function OutreachApproval() {
-  const { outreachMessages, leads, companies, qualifications, upsertOutreachMessage, toast, openCopilot } = useApp()
+  const { outreachMessages, leads, companies, qualifications, upsertOutreachMessage, deleteOutreachMessage, toast, openCopilot } = useApp()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'PENDING' | 'SENT'>('PENDING')
   const [editBody, setEditBody] = useState('')
@@ -107,6 +107,13 @@ export default function OutreachApproval() {
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg.body)}`
     window.open(url, '_blank')
     toast('info', 'Link do WhatsApp aberto em nova aba. (Registro: WHATSAPP_OPENED)')
+  }
+
+  const handleDelete = (msgId: string) => {
+    if (window.confirm('Tem certeza que deseja apagar esta mensagem para sempre?')) {
+      deleteOutreachMessage(msgId)
+      toast('success', 'Mensagem apagada com sucesso!')
+    }
   }
 
   const handleConfirmSent = (msg: OutreachMessage) => {
@@ -234,6 +241,7 @@ export default function OutreachApproval() {
                       {company?.phone && (
                         <Button size="sm" variant="secondary" onClick={() => handleOpenWhatsapp(msg)}>📱 Abrir WhatsApp</Button>
                       )}
+                      <Button size="sm" variant="danger" style={{ background: 'transparent', color: 'var(--danger)', border: '1px solid var(--danger)' }} onClick={() => handleDelete(msg.id)}>🗑️ Apagar</Button>
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -297,6 +305,9 @@ export default function OutreachApproval() {
                         disabled={!company}
                       >
                         🤖 Copiloto IA
+                      </Button>
+                      <Button size="sm" variant="danger" style={{ background: 'transparent', color: 'var(--danger)', border: '1px solid var(--danger)' }} onClick={() => handleDelete(msg.id)}>
+                        🗑️ Apagar
                       </Button>
                     </div>
                   </div>
