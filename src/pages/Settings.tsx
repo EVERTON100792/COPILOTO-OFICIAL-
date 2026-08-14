@@ -284,6 +284,7 @@ export default function Settings() {
             </div>
           </Card>
 
+          {/* 
           <Card title="🤖 IA de Vendas — OpenCode Go / DeepSeek">
             <div className="flex col gap-12">
               <div style={{ padding: '10px 14px', background: 'rgba(99,102,241,0.08)', borderRadius: 10, border: '1px solid rgba(99,102,241,0.2)', fontSize: 13 }}>
@@ -434,6 +435,7 @@ export default function Settings() {
               <div className="tiny muted">Se a API falhar, o sistema usa automaticamente o Motor Humano de Vendas (sem IA).</div>
             </div>
           </Card>
+          */}
         </div>
       </div>
 

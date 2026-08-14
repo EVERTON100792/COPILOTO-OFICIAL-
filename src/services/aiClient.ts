@@ -89,18 +89,12 @@ function detectProvider(apiKey: string, baseUrl: string): 'opencode_zen' | 'open
   return 'custom'
 }
 
-function resolveEndpoint(provider: string, canonicalBaseUrl: string, hasCustomKey: boolean): string {
+function resolveEndpoint(provider: string, canonicalBaseUrl: string): string {
   if (provider === 'custom') {
     return canonicalBaseUrl.replace(/\/+$/, '')
   }
 
-  // Se o usuário tem a própria chave e estamos em produção, chama direto (Providers modernos suportam CORS).
-  // Evita o limite de 30s de timeout das Serverless Functions do Netlify.
-  if (hasCustomKey && !isDev()) {
-    return canonicalBaseUrl.replace(/\/+$/, '')
-  }
-
-  // Route through proxy (Vite in dev, Netlify in prod) to bypass CORS and inject shared API Key
+  // Route through proxy (Vite in dev, Netlify in prod) to bypass CORS
   const proxyBase = PROXY[provider as keyof typeof PROXY]
   if (proxyBase) {
     // Strip the canonical origin so we only keep the path after the host
@@ -128,8 +122,7 @@ export async function callAI(options: AIClientOptions): Promise<string> {
   // Default canonical URL per provider
   const canonicalBase = configuredBaseUrl
 
-  const hasCustomKey = Boolean(apiKey)
-  const baseUrl = resolveEndpoint(provider, canonicalBase, hasCustomKey)
+  const baseUrl = resolveEndpoint(provider, canonicalBase)
 
   const endpoint = baseUrl.endsWith('/chat/completions')
     ? baseUrl
