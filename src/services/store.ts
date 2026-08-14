@@ -6,9 +6,11 @@ import type {
   ProspectingSession, ProspectingMessage, WebsiteProject, WebsiteVersion,
 } from '../types'
 import { DEFAULT_SETTINGS } from '../config/defaults'
-import { getItem, setItem, clearAll } from '../database/storage'
+import { getItem, setItem, clearAll, fetchAllFromSupabase } from '../database/storage'
 import { buildDemoCompanies } from '../database/demoFactory'
 import { uid, nowIso } from '../lib/utils'
+import { getSupabase, supabaseAvailable } from '../database/supabase'
+import { logger } from '../lib/logger'
 
 
 export interface Toast {
@@ -183,6 +185,29 @@ export const useApp = create<AppState>((set, get) => ({
       websiteProjects: getItem<WebsiteProject[]>('websiteProjects', []),
       hydrated: true,
     })
+
+    // background: if Supabase is configured and user signed-in, fetch remote and merge (remote wins)
+    void (async () => {
+      if (!supabaseAvailable) return
+      try {
+        const remote = await fetchAllFromSupabase()
+        if (!remote) return
+        const partial: Partial<AppState> = {}
+        for (const k of LS_KEYS) {
+          if (Object.prototype.hasOwnProperty.call(remote, k)) {
+            partial[k as keyof AppState] = remote[k]
+          }
+        }
+        if (Object.keys(partial).length > 0) {
+          // apply remote values and persist locally
+          set(partial as any)
+          persist(partial)
+          logger.info('STORAGE', 'Dados sincronizados do Supabase para o cliente')
+        }
+      } catch (e) {
+        logger.warn('STORAGE', 'Falha ao mesclar dados do Supabase', String(e))
+      }
+    })()
   },
 
   resetAll: () => {

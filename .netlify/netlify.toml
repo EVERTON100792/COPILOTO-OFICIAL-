@@ -7,7 +7,7 @@ headers = []
 [functions."*"]
 
 [build]
-publish = "C:\\Users\\Everton Moura\\Desktop\\PROSPECTOR DE CLIENTES AUTOMATICO\\dist"
+publish = "C:\\Users\\Everton Moura\\Desktop\\PROSPECTOR DE CLIENTES AUTOMATICO.worktrees\\supabase-integration-completion\\dist"
 publishOrigin = "ui"
 commandOrigin = "ui"
 command = "npm run build"

@@ -1,0 +1,4 @@
+-- 006_remote_sync.sql
+-- This file intentionally only records the remote migration already applied to the Supabase project.
+-- The remote database was already migrated to version 006 before this local checkout.
+-- Do not run any schema changes here; this is a reconciliation file.

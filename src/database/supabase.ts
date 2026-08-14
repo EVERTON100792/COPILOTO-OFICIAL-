@@ -21,3 +21,17 @@ export function getSupabase(): SupabaseClient | null {
 }
 
 export const supabaseAvailable = isSupabaseConfigured
+
+export function onAuthStateChange(cb: (event: string, session: any) => void): () => void {
+  const supabase = getSupabase()
+  if (!supabase) return () => {}
+  try {
+    const sub = supabase.auth.onAuthStateChange((event, session) => cb(event, session))
+    // supabase-js returns an object containing subscription — try to unsubscribe safely
+    return () => {
+      try { (sub as any)?.data?.subscription?.unsubscribe?.(); } catch { /* ignore */ }
+    }
+  } catch (e) {
+    return () => {}
+  }
+}

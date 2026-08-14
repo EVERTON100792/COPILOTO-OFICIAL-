@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp } from '../services/store'
 import { Card, Button, Field, Switch, Badge } from '../components/ui'
 import { DEFAULT_SCORE_WEIGHTS } from '../config/defaults'
 import { env, APP_VERSION } from '../config/env'
 import { formatDateTime } from '../lib/utils'
 import { callAI, fetchOpenCodeModels } from '../services/aiClient'
+import { getSupabase, supabaseAvailable } from '../database/supabase'
 import type { ScoreWeights } from '../types'
 
 const WEIGHT_LABELS: Record<keyof ScoreWeights, string> = {
@@ -35,10 +36,127 @@ export default function Settings() {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [testResult, setTestResult] = useState<string>('')
   const [apiKeyInput, setApiKeyInput] = useState(settings.aiApiKey || '')
-  const [baseUrlInput, setBaseUrlInput] = useState(settings.aiBaseUrl || 'https://opencode.ai/zen/v1')
+  const [baseUrlInput, setBaseUrlInput] = useState(settings.aiBaseUrl || 'https://opencode.ai/zen/go/v1')
   const [modelInput, setModelInput] = useState(settings.aiModel || 'deepseek-v4-flash')
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [fetchingModels, setFetchingModels] = useState(false)
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authUserEmail, setAuthUserEmail] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authMessage, setAuthMessage] = useState('')
+
+  useEffect(() => {
+    const supabase = getSupabase()
+    if (!supabase) return
+
+    const syncUser = async () => {
+      const { data, error } = await supabase.auth.getUser()
+      if (!error && data.user?.email) setAuthUserEmail(data.user.email)
+    }
+    syncUser()
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const email = session?.user?.email || ''
+      setAuthUserEmail(email)
+      if (_event === 'SIGNED_OUT') setAuthMessage('Sessão encerrada.')
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  async function handleEmailPassword(type: 'signin' | 'signup') {
+    const supabase = getSupabase()
+    if (!supabase || !supabaseAvailable) {
+      s.toast('error', 'Supabase não configurado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.')
+      return
+    }
+
+    const email = authEmail.trim()
+    const password = authPassword.trim()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      s.toast('error', 'Informe um e-mail válido.')
+      return
+    }
+    if (!password || password.length < 6) {
+      s.toast('error', 'A senha deve ter pelo menos 6 caracteres.')
+      return
+    }
+
+    setAuthLoading(true)
+    setAuthMessage('')
+
+    const result = type === 'signin'
+      ? await supabase.auth.signInWithPassword({ email, password })
+      : await supabase.auth.signUp({ email, password })
+
+    setAuthLoading(false)
+
+    if (result.error) {
+      setAuthMessage(result.error.message)
+      s.toast('error', result.error.message)
+      return
+    }
+
+    if (type === 'signup') {
+      setAuthMessage('Conta criada com sucesso. Verifique o e-mail para confirmar a conta, se a confirmação estiver habilitada.')
+      s.toast('success', 'Conta criada com sucesso.')
+    } else {
+      setAuthMessage('Login realizado com sucesso.')
+      s.toast('success', 'Login realizado com sucesso.')
+    }
+  }
+
+  async function handleMagicLink() {
+    const supabase = getSupabase()
+    if (!supabase || !supabaseAvailable) {
+      s.toast('error', 'Supabase não configurado. Verifique VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.')
+      return
+    }
+
+    const email = authEmail.trim()
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      s.toast('error', 'Informe um e-mail válido para receber o link de acesso.')
+      return
+    }
+
+    setAuthLoading(true)
+    setAuthMessage('')
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    })
+    setAuthLoading(false)
+
+    if (error) {
+      setAuthMessage(error.message)
+      s.toast('error', error.message)
+      return
+    }
+
+    setAuthMessage('Link mágico enviado. Verifique seu e-mail e clique no link para entrar.')
+    s.toast('success', 'Link de acesso enviado para o e-mail informado.')
+  }
+
+  async function handleSignOut() {
+    const supabase = getSupabase()
+    if (!supabase || !supabaseAvailable) {
+      s.toast('error', 'Supabase não configurado.')
+      return
+    }
+
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      s.toast('error', error.message)
+      return
+    }
+
+    setAuthUserEmail('')
+    setAuthMessage('Usuário desconectado.')
+    s.toast('success', 'Sessão encerrada com sucesso.')
+  }
 
   async function handleFetchModels() {
     if (!apiKeyInput.trim()) { s.toast('error', 'Insira a chave de API primeiro.'); return }
@@ -215,7 +333,7 @@ export default function Settings() {
                 </div>
                 <input
                   className="input"
-                  placeholder="https://opencode.ai/zen/v1"
+                  placeholder="https://opencode.ai/zen/go/v1"
                   value={baseUrlInput}
                   onChange={(e) => setBaseUrlInput(e.target.value)}
                   onBlur={() => s.saveSettings({ aiBaseUrl: baseUrlInput.trim() })}
@@ -321,6 +439,66 @@ export default function Settings() {
         </div>
       </div>
 
+
+      <Card title="Sincronização Supabase (magic link)" className="mt-16">
+        <div className="flex col gap-12">
+          <div className="small muted">
+            {supabaseAvailable
+              ? authUserEmail
+                ? `Conectado como: ${authUserEmail}`
+                : 'Ainda não há sessão ativa. Envie um link mágico para entrar com seu e-mail.'
+              : 'Supabase não está configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY para ativar a sincronização.'}
+          </div>
+
+          {!authUserEmail && (
+            <>
+              <Field label="E-mail de acesso">
+                <input
+                  className="input"
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="voce@empresa.com"
+                />
+              </Field>
+
+              <Field label="Senha (login por e-mail e senha)">
+                <input
+                  className="input"
+                  type="password"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  placeholder="Sua senha"
+                />
+              </Field>
+
+              <div className="flex gap-8" style={{ flexWrap: 'wrap' }}>
+                <Button variant="primary" onClick={() => handleEmailPassword('signin')} disabled={authLoading || !supabaseAvailable}>
+                  {authLoading ? 'Entrando...' : 'Entrar'}
+                </Button>
+                <Button variant="secondary" onClick={() => handleEmailPassword('signup')} disabled={authLoading || !supabaseAvailable}>
+                  {authLoading ? 'Criando...' : 'Criar conta'}
+                </Button>
+                <Button variant="ghost" onClick={handleMagicLink} disabled={authLoading || !supabaseAvailable}>
+                  {authLoading ? 'Enviando...' : 'Link mágico'}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {authUserEmail && (
+            <div className="flex gap-8">
+              <Button variant="secondary" onClick={handleSignOut}>Sair da conta</Button>
+            </div>
+          )}
+
+          {authMessage && (
+            <div style={{ padding: 10, borderRadius: 8, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 13 }}>
+              {authMessage}
+            </div>
+          )}
+        </div>
+      </Card>
 
       <Card title="Avançado" className="mt-16">
         <div className="grid grid-3 gap-16">
