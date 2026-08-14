@@ -3,11 +3,17 @@ export const APP_VERSION = '1.0.0'
 
 export const DEMO_MODE = (import.meta.env.VITE_DEMO_MODE ?? 'true') === 'true'
 
+const normalizeSupabaseUrl = (raw?: string): string | undefined => {
+  if (!raw) return raw
+  const value = raw.trim().replace(/[\\/]+$/, '')
+  return value.replace(/\/rest\/v1$/i, '').replace(/\/auth\/v1$/i, '')
+}
+
 const OVERPASS_DEFAULT = 'https://overpass-api.de/api/interpreter'
 const NOMINATIM_DEFAULT = 'https://nominatim.openstreetmap.org/search'
 
 export const env = {
-  supabaseUrl: import.meta.env.VITE_SUPABASE_URL as string | undefined,
+  supabaseUrl: normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined),
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined,
   aiProvider: import.meta.env.VITE_AI_PROVIDER as string | undefined,
   aiApiKey: import.meta.env.VITE_AI_API_KEY as string | undefined,
