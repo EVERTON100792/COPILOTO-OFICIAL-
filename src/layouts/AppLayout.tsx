@@ -4,7 +4,7 @@ import { APP_NAME } from '../config/env'
 import { timeAgo } from '../lib/utils'
 import { useState } from 'react'
 import { Modal } from '../components/ui'
-import { StarfieldBg } from '../components/ui/StarfieldBg'
+import { KineticGrid } from '../components/ui/KineticGrid'
 import { GlobalCopilotDrawer } from '../components/GlobalCopilotDrawer'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -62,7 +62,7 @@ export function AppLayout() {
 
   return (
     <div className="app-shell">
-      <StarfieldBg />
+      <KineticGrid />
       {/* Overlay para mobile */}
       {mobileMenuOpen && (
         <div className="mobile-overlay" onClick={() => setMobileMenuOpen(false)}></div>
