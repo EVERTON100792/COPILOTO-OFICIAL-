@@ -273,7 +273,7 @@ export class QualificationService {
     // 3. Verificação de IA
     const aiMode = opts.aiModeOverride ?? s.settings.aiMode ?? 'OPTIONAL'
     const hasApiKey = Boolean(s.settings.aiApiKey && s.settings.aiApiKey.trim().length > 0)
-    const canUseAI = !company.isDemo && aiMode !== 'DISABLED' && (aiMode === 'FORCED' || hasApiKey)
+    const canUseAI = !company.isDemo && aiMode !== 'DISABLED' && (aiMode === 'REQUIRED' || hasApiKey)
 
     if (canUseAI) {
       try {
